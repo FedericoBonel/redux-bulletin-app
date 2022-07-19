@@ -1,35 +1,54 @@
 import "./styles.css";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { useEffect } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 
-import { selectAllPosts } from "../PostsSlice";
+import {
+    // Selectors
+    selectAllPosts,
+    selectPostsStatus,
+    selectPostsError,
+    // Get Posts action to update store
+    getPosts,
+} from "../PostsSlice";
 
-import PostAuthor from "../PostAuthor/PostAuthor";
-import CreationDate from "../CreationDate/CreationDate";
-import ReactionButtons from "../ReactionButtons/ReactionButtons";
+import PostExcerpt from "../PostExcerpt/PostExcerpt";
 
 const PostsList = () => {
-    const posts = useSelector(selectAllPosts);
+    const dispatch = useDispatch();
 
-    const postsByDate = posts
-        .slice()
-        .sort((post1, post2) => post2.date.localeCompare(post1.date));
+    const posts = useSelector(selectAllPosts);
+    const postsStatus = useSelector(selectPostsStatus);
+    const postsError = useSelector(selectPostsError);
+
+    // If the post slice is in it's default state
+    // Fetch all posts from the server
+    useEffect(() => {
+        if (postsStatus === "idle") {
+            dispatch(getPosts());
+        }
+    }, [postsStatus, dispatch]);
+
+    // Check if we have succeeded at fetching all posts and display them
+    let list;
+    if (postsStatus === "loading") {
+        list = <FontAwesomeIcon icon={faCircleNotch} spin={true} size="3x" />;
+    } else if (postsStatus === "succeeded") {
+        const postsByDate = posts
+            .slice()
+            .sort((p1, p2) => p2.date.localeCompare(p1.date));
+        list = postsByDate.map((post) => (
+            <PostExcerpt key={post.id} post={post} />
+        ));
+    } else if (postsStatus === "failed") {
+        list = <p>Error: {postsError}</p>;
+    }
 
     return (
         <section className="post-list">
             <h2>Posts</h2>
-            {postsByDate.map((post) => (
-                <article key={post.id} className="post-card">
-                    <h3>{post.title}</h3>
-                    <p>{post.content.substring(0, 150)}</p>
-                    <p>
-                        <PostAuthor userId={post.userId} />{" "}
-                        <i>
-                            <CreationDate timestamp={post.date} />
-                        </i>
-                    </p>
-                    <ReactionButtons post={post}/>
-                </article>
-            ))}
+            {list}
         </section>
     );
 };

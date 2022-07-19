@@ -1,16 +1,27 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
 
-// Hashtable keys are the users id for constant lookup
-const initialState = {
-    "1": { id: "1", name: "Federico Jorge Bonel Tozzi" },
-    "2": { id: "2", name: "Giuseppe Giuliano Bonel Tozzi" },
-    "3": { id: "3", name: "Belen Angelica" },
-};
+const USERS_URL = "https://jsonplaceholder.typicode.com/users";
+
+// Hashtable keys are the users id for constant time lookup
+const initialState = {};
+
+export const getUsers = createAsyncThunk("users/getUsers", async () => {
+    const response = await axios.get(USERS_URL);
+    return response.data;
+});
 
 const usersSlice = createSlice({
     name: "users",
     initialState: initialState,
-    reducers: {
+    reducers: {},
+    extraReducers: (builder) => {
+        builder.addCase(getUsers.fulfilled, (state, action) => {
+            const usersHashTable = {};
+            action.payload.map((user) => (usersHashTable[user.id] = user));
+            // Replace completly the current users slice state by returning it
+            return usersHashTable;
+        });
     },
 });
 

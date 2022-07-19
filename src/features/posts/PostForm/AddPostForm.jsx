@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import "./styles.css";
 
-import { addPost } from "../PostsSlice";
+import { createPost } from "../PostsSlice";
 import { selectAllUsers } from "../../users/UsersSlice";
 
 const AddPostForm = () => {
@@ -12,20 +12,37 @@ const AddPostForm = () => {
     // Form states
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
-    const [userId, setUserId] = useState(null);
+    const [userId, setUserId] = useState("");
+    // We only care about creating a new user state in this componenent
+    // This is way we add it with useState hook and not as part of our global state
+    const [addRequestStatus, setAddRequestStatus] = useState("idle");
 
     // Users coming from global state
     const users = useSelector(selectAllUsers);
 
-    // Checks if all fields have been selected
-    const canSaveUser = Boolean(title) && Boolean(userId) && Boolean(content);
+    // Checks if all fields have been selected and there is no current request leaving the client
+    const canSavePost =
+        Boolean(title) &&
+        Boolean(userId) &&
+        Boolean(content) &&
+        addRequestStatus === "idle";
 
     // Dispatches a creation action to the global state
     const onCreatePost = () => {
-        dispatch(addPost(title, content, userId));
+        if (canSavePost) {
+            try {
+                setAddRequestStatus("pending");
+                dispatch(createPost({ title, body: content, userId })).unwrap();
 
-        setTitle("");
-        setContent("");
+                setTitle("");
+                setContent("");
+                setUserId("");
+            } catch (error) {
+                console.log(error.message);
+            } finally {
+                setAddRequestStatus("idle");
+            }
+        }
     };
 
     // Creates the JSX to display the users as options
@@ -59,9 +76,7 @@ const AddPostForm = () => {
                         value={userId}
                         onChange={(e) => setUserId(e.target.value)}
                     >
-                        <option disabled selected value>
-                            -- select an option --
-                        </option>
+                        <option>-- Select your user --</option>
                         {renderUserOptions}
                     </select>
                 </div>
@@ -79,7 +94,7 @@ const AddPostForm = () => {
                     type="button"
                     className="post-form-submit-btn"
                     onClick={onCreatePost}
-                    disabled={!canSaveUser}
+                    disabled={!canSavePost}
                 >
                     Create Post
                 </button>

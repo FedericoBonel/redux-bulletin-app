@@ -1,82 +1,99 @@
-import { createSlice, nanoid } from "@reduxjs/toolkit";
-import { sub } from "date-fns";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import sub from "date-fns/sub";
+import axios from "axios";
 
-const initialState = [
-    {
-        id: 1,
-        title: "Learning Redux",
-        content: "I've heard good things of redux, it's awesome!",
-        userId: "1",
-        date: sub(new Date(), { minutes: 10 }).toISOString(),
-        reactions: {
-            thumbsUp: 0,
-            wow: 0,
-            heart: 0,
-            rocket: 0,
-            coffee: 0,
-        },
-    },
-    {
-        id: 2,
-        title: "Slices!",
-        content: "The more I say slices the more I want pizza",
-        userId: "2",
-        date: sub(new Date(), { days: 1, minutes: 20 }).toISOString(),
-        reactions: {
-            thumbsUp: 0,
-            wow: 0,
-            heart: 0,
-            rocket: 0,
-            coffee: 0,
-        },
-    },
-];
+const POSTS_URL = "https://jsonplaceholder.typicode.com/posts";
+
+const initialState = {
+    posts: [],
+    status: "idle", // idle | failed | succeeded | loading
+    error: null,
+};
+
+// Get all posts from backend server asynchrounously (in another thread)
+export const getPosts = createAsyncThunk("posts/getPosts", async () => {
+    const response = await axios.get(POSTS_URL);
+    return response.data;
+});
+
+// Create new posts in the backend server asynchrounously (in another thread)
+export const createPost = createAsyncThunk(
+    "posts/createPost",
+    async (newPost) => {
+        const response = await axios.post(POSTS_URL, newPost);
+        return response.data;
+    }
+);
 
 const postsSlice = createSlice({
     name: "posts",
     initialState: initialState,
     reducers: {
-        addPost: {
-            // This gets executed when addPost action gets executed
-            reducer: (state, action) => {
-                state.push(action.payload);
-            },
-            // This is the callback function for the reducer, basically it defines an user interface
-            // for the programmer, that way you can call to add post in your components as: dispatch(addPost(title, content))
-            // and that gets mapped to this function before pushing it in the state, that is, the action's payload gets reassigned to this object
-            prepare: (title, content, userId) => {
-                return {
-                    payload: {
-                        id: nanoid(),
-                        title: title,
-                        content: content,
-                        date: new Date().toISOString(),
-                        userId: userId,
-                        reactions: {
-                            thumbsUp: 0,
-                            wow: 0,
-                            heart: 0,
-                            rocket: 0,
-                            coffee: 0,
-                        },
-                    },
-                };
-            },
-        },
         addReaction: (state, action) => {
             const { postId, reaction } = action.payload;
-            const foundPost = state.find((post) => post.id === postId);
+            const foundPost = state.posts.find((post) => post.id === postId);
 
             if (foundPost) {
                 foundPost.reactions[reaction]++;
             }
         },
     },
+    // Adding extra cases that are outside our defined reducers for the thunk (async get posts)
+    // Each ones of these ones are going to use the promises states since those are specific actions for the action
+    // posts/getPosts (generated in createAsyncThunk)
+    extraReducers: (builder) => {
+        builder
+            .addCase(getPosts.pending, (state, action) => {
+                state.status = "loading";
+            })
+            .addCase(getPosts.fulfilled, (state, action) => {
+                state.status = "succeeded";
+                let min = 1;
+                const loadedPosts = action.payload.map((post) => {
+                    // ! Adding handmade dates and
+                    // ! reactions this should be removed when an actual microservice is developed
+                    post.date = sub(new Date(), {
+                        minutes: min++,
+                    }).toISOString();
+                    post.reactions = {
+                        thumbsUp: 0,
+                        wow: 0,
+                        heart: 0,
+                        rocket: 0,
+                        coffee: 0,
+                    };
+                    // ! End of removable code
+                    return post;
+                });
+                state.posts = state.posts.concat(loadedPosts);
+            })
+            .addCase(getPosts.rejected, (state, action) => {
+                state.status = "failed";
+                state.error = action.error;
+            })
+            .addCase(createPost.fulfilled, (state, action) => {
+                action.payload.userId = Number(action.payload.userId);
+                // ! Adding handmade dates and
+                // ! reactions this should be removed when an actual microservice is developed
+                action.payload.date = new Date().toISOString();
+                action.payload.reactions = {
+                    thumbsUp: 0,
+                    wow: 0,
+                    heart: 0,
+                    rocket: 0,
+                    coffee: 0,
+                };
+                // ! End of removable code
+                state.posts.push(action.payload);
+            });
+    },
 });
 
 // Exports the posts selector (in the global state), that way if in the future the location in
 // the state tree changes, we only need to change it here
-export const selectAllPosts = (state) => state.posts;
+export const selectAllPosts = (state) => state.posts.posts;
+export const selectPostsStatus = (state) => state.posts.status;
+export const selectPostsError = (state) => state.posts.error;
 
 export const { addPost, addReaction } = postsSlice.actions;
 
