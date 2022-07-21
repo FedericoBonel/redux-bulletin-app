@@ -25,6 +25,26 @@ export const createPost = createAsyncThunk(
     }
 );
 
+// Update posts in the backend server asynchrounously (in another thread)
+export const updatePost = createAsyncThunk(
+    "posts/updatePost",
+    async (updatedPost) => {
+        const response = await axios.put(
+            `${POSTS_URL}/${updatedPost.id}`,
+            updatedPost
+        );
+        return response.data;
+    }
+);
+
+// Delete posts in the backend server asynchrounously (in another thread)
+export const deletePost = createAsyncThunk("posts/deletePost", async (post) => {
+    const postId = post.id;
+    const response = await axios.delete(`${POSTS_URL}/${postId}`);
+    if (response.status === 200) return post;
+    return `${response.status}:${response.statusText}`;
+});
+
 const postsSlice = createSlice({
     name: "posts",
     initialState: initialState,
@@ -85,6 +105,30 @@ const postsSlice = createSlice({
                 };
                 // ! End of removable code
                 state.posts.push(action.payload);
+            })
+            .addCase(updatePost.fulfilled, (state, action) => {
+                // This could happen if the server has an error for example (i.g 5XX response code)
+                if (!action.payload?.id) {
+                    console.log("Problem saving updated post");
+                    console.log(action.payload);
+                    return;
+                }
+                const { id } = action.payload;
+                action.payload.userId = Number(action.payload.userId);
+                // ! Adding handmade dates this should be removed when an actual microservice is developed
+                action.payload.date = new Date().toISOString();
+                // ! End of removable code
+                state.posts = state.posts.filter((post) => post.id !== id);
+                state.posts.push(action.payload);
+            })
+            .addCase(deletePost.fulfilled, (state, action) => {
+                if (!action.payload?.id) {
+                    console.log("Problem saving updated post");
+                    console.log(action.payload);
+                    return;
+                }
+                const { id } = action.payload;
+                state.posts = state.posts.filter((post) => post.id !== id);
             });
     },
 });
@@ -94,6 +138,8 @@ const postsSlice = createSlice({
 export const selectAllPosts = (state) => state.posts.posts;
 export const selectPostsStatus = (state) => state.posts.status;
 export const selectPostsError = (state) => state.posts.error;
+export const selectPostById = (state, postId) =>
+    state.posts.posts.find((post) => post.id === postId);
 
 export const { addPost, addReaction } = postsSlice.actions;
 

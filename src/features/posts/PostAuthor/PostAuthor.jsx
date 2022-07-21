@@ -1,4 +1,4 @@
-import "./styles.css";
+import "./PostAuthor.css";
 import { useSelector } from "react-redux/es/exports";
 
 import { selectAllUsers } from "../../users/UsersSlice";

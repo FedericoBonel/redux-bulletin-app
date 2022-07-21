@@ -1,13 +1,14 @@
+import "./AddPostForm.css";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
-import "./styles.css";
+import { useNavigate } from "react-router";
 
 import { createPost } from "../PostsSlice";
 import { selectAllUsers } from "../../users/UsersSlice";
 
 const AddPostForm = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     // Form states
     const [title, setTitle] = useState("");
@@ -37,6 +38,7 @@ const AddPostForm = () => {
                 setTitle("");
                 setContent("");
                 setUserId("");
+                navigate("/");
             } catch (error) {
                 console.log(error.message);
             } finally {

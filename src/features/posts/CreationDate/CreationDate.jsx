@@ -1,4 +1,4 @@
-import "./styles.css";
+import "./CreationDate.css";
 import { parseISO, formatDistanceToNow } from "date-fns";
 
 const CreationDate = ({ timestamp }) => {

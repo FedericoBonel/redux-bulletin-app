@@ -1,4 +1,4 @@
-import "./styles.css";
+import "./ReactionButtons.css";
 import { useDispatch } from "react-redux/es/exports";
 
 import { addReaction } from "../PostsSlice";
