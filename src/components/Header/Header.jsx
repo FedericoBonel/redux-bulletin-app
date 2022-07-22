@@ -13,6 +13,11 @@ const Header = () => {
                         </Link>
                     </li>
                     <li>
+                        <Link className="navbar-link" to="/user">
+                            Users
+                        </Link>
+                    </li>
+                    <li>
                         <Link className="btn-grad" to="/post">
                             New
                         </Link>

@@ -24,7 +24,7 @@ const PostPage = () => {
 
     return (
         <article>
-            <h1>{post.title}</h1>
+            <h2>{post.title}</h2>
             <Link to={`/post/edit/${post.id}`}>Edit Post</Link>
             <p>{post.body}</p>
             <p>

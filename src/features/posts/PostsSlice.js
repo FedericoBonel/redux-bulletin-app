@@ -1,49 +1,49 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import {
+    createSlice,
+    createAsyncThunk,
+    createSelector,
+    createEntityAdapter,
+} from "@reduxjs/toolkit";
 import sub from "date-fns/sub";
-import axios from "axios";
 
-const POSTS_URL = "https://jsonplaceholder.typicode.com/posts";
+import {
+    getAllPosts,
+    createNewPost,
+    updateSavedPost,
+    deleteSavedPost,
+} from "../../api/Posts";
 
-const initialState = {
-    posts: [],
+// Creates the postSlice adapter for selectors and normalized state auto creation (sorting ids by date)
+const postAdapter = createEntityAdapter({
+    sortComparer: (post1, post2) => post2.date.localeCompare(post1.date),
+});
+
+const initialState = postAdapter.getInitialState({
     status: "idle", // idle | failed | succeeded | loading
     error: null,
-};
+});
 
 // Get all posts from backend server asynchrounously (in another thread)
-export const getPosts = createAsyncThunk("posts/getPosts", async () => {
-    const response = await axios.get(POSTS_URL);
-    return response.data;
-});
+export const getPosts = createAsyncThunk("posts/getPosts", async () =>
+    getAllPosts()
+);
 
 // Create new posts in the backend server asynchrounously (in another thread)
 export const createPost = createAsyncThunk(
     "posts/createPost",
-    async (newPost) => {
-        const response = await axios.post(POSTS_URL, newPost);
-        return response.data;
-    }
+    async (newPost) => createNewPost(newPost)
 );
 
 // Update posts in the backend server asynchrounously (in another thread)
 export const updatePost = createAsyncThunk(
     "posts/updatePost",
-    async (updatedPost) => {
-        const response = await axios.put(
-            `${POSTS_URL}/${updatedPost.id}`,
-            updatedPost
-        );
-        return response.data;
-    }
+    async (updatedPost) => updateSavedPost(updatedPost)
 );
 
 // Delete posts in the backend server asynchrounously (in another thread)
-export const deletePost = createAsyncThunk("posts/deletePost", async (post) => {
-    const postId = post.id;
-    const response = await axios.delete(`${POSTS_URL}/${postId}`);
-    if (response.status === 200) return post;
-    return `${response.status}:${response.statusText}`;
-});
+export const deletePost = createAsyncThunk("posts/deletePost", async (post) =>
+    deleteSavedPost(post)
+);
 
 const postsSlice = createSlice({
     name: "posts",
@@ -51,7 +51,7 @@ const postsSlice = createSlice({
     reducers: {
         addReaction: (state, action) => {
             const { postId, reaction } = action.payload;
-            const foundPost = state.posts.find((post) => post.id === postId);
+            const foundPost = state.entities[postId];
 
             if (foundPost) {
                 foundPost.reactions[reaction]++;
@@ -85,7 +85,7 @@ const postsSlice = createSlice({
                     // ! End of removable code
                     return post;
                 });
-                state.posts = state.posts.concat(loadedPosts);
+                postAdapter.upsertMany(state, loadedPosts);
             })
             .addCase(getPosts.rejected, (state, action) => {
                 state.status = "failed";
@@ -104,7 +104,7 @@ const postsSlice = createSlice({
                     coffee: 0,
                 };
                 // ! End of removable code
-                state.posts.push(action.payload);
+                postAdapter.addOne(state, action.payload);
             })
             .addCase(updatePost.fulfilled, (state, action) => {
                 // This could happen if the server has an error for example (i.g 5XX response code)
@@ -113,13 +113,11 @@ const postsSlice = createSlice({
                     console.log(action.payload);
                     return;
                 }
-                const { id } = action.payload;
                 action.payload.userId = Number(action.payload.userId);
                 // ! Adding handmade dates this should be removed when an actual microservice is developed
                 action.payload.date = new Date().toISOString();
                 // ! End of removable code
-                state.posts = state.posts.filter((post) => post.id !== id);
-                state.posts.push(action.payload);
+                postAdapter.upsertOne(state, action.payload);
             })
             .addCase(deletePost.fulfilled, (state, action) => {
                 if (!action.payload?.id) {
@@ -127,20 +125,28 @@ const postsSlice = createSlice({
                     console.log(action.payload);
                     return;
                 }
-                const { id } = action.payload;
-                state.posts = state.posts.filter((post) => post.id !== id);
+                postAdapter.removeOne(state, action.payload.id);
             });
     },
 });
 
-// Exports the posts selector (in the global state), that way if in the future the location in
-// the state tree changes, we only need to change it here
-export const selectAllPosts = (state) => state.posts.posts;
+// Get selectors creates this selectors for us and we rename them using destructuring
+export const {
+    selectAll: selectAllPosts,
+    selectById: selectPostById,
+    selectIds: selectPostIds,
+    // We need to tell the adapter from which slice we need to get these selectors
+    // Since we are outside the createSlice method
+} = postAdapter.getSelectors((state) => state.posts);
+
 export const selectPostsStatus = (state) => state.posts.status;
 export const selectPostsError = (state) => state.posts.error;
-export const selectPostById = (state, postId) =>
-    state.posts.posts.find((post) => post.id === postId);
 
-export const { addPost, addReaction } = postsSlice.actions;
+export const selectPostsByUser = createSelector(
+    [selectAllPosts, (state, userId) => userId],
+    (posts, userId) => posts.filter((post) => post.userId === userId)
+);
+
+export const { addReaction } = postsSlice.actions;
 
 export default postsSlice.reducer;

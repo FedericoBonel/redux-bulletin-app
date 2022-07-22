@@ -5,7 +5,7 @@ import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 
 import {
     // Selectors
-    selectAllPosts,
+    selectPostIds,
     selectPostsStatus,
     selectPostsError,
 } from "../PostsSlice";
@@ -13,7 +13,7 @@ import {
 import PostExcerpt from "../PostExcerpt/PostExcerpt";
 
 const PostsList = () => {
-    const posts = useSelector(selectAllPosts);
+    const orderedPostsIds = useSelector(selectPostIds);
     const postsStatus = useSelector(selectPostsStatus);
     const postsError = useSelector(selectPostsError);
 
@@ -22,11 +22,8 @@ const PostsList = () => {
     if (postsStatus === "loading") {
         list = <FontAwesomeIcon icon={faCircleNotch} spin={true} size="3x" />;
     } else if (postsStatus === "succeeded") {
-        const postsByDate = posts
-            .slice()
-            .sort((p1, p2) => p2.date.localeCompare(p1.date));
-        list = postsByDate.map((post) => (
-            <PostExcerpt key={post.id} post={post} />
+        list = orderedPostsIds.map((postId) => (
+            <PostExcerpt key={postId} postId={postId} />
         ));
     } else if (postsStatus === "failed") {
         list = <p>Error: {postsError}</p>;
