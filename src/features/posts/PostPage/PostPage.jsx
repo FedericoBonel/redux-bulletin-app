@@ -1,3 +1,5 @@
+import "./PostPage.css";
+
 import { useSelector } from "react-redux";
 import { selectPostById } from "../PostsSlice";
 
@@ -16,24 +18,27 @@ const PostPage = () => {
 
     if (!post) {
         return (
-            <section>
-                <h2>Post not found!</h2>
+            <section className="not-found">
+                <h2>404 - The requested post does not exist! 😿</h2>
             </section>
         );
     }
 
     return (
-        <article>
-            <h2>{post.title}</h2>
-            <Link to={`/post/edit/${post.id}`}>Edit Post</Link>
-            <p>{post.body}</p>
-            <p>
-                <PostAuthor userId={post.userId} />{" "}
-                <i>
-                    <CreationDate timestamp={post.date} />
-                </i>
-            </p>
-            <ReactionButtons post={post} />
+        <article className="post-container">
+            <div className="post-content">
+                <h2 className="post-title">{post.title}</h2>
+                <hr />
+                <p>{post.body}</p>
+                <Link to={`/post/edit/${post.id}`}>Edit Post</Link>
+                <p>
+                    <PostAuthor userId={post.userId} />{" "}
+                    <i>
+                        <CreationDate timestamp={post.date} />
+                    </i>
+                </p>
+                <ReactionButtons post={post} />
+            </div>
         </article>
     );
 };

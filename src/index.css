@@ -36,3 +36,9 @@ a {
 a:visited {
     color: rgb(249, 157, 95);
 }
+
+hr {
+    border: none;
+    background: beige;
+    padding: 0.5px;
+}

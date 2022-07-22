@@ -5,10 +5,11 @@ import { selectUserById } from "../UsersSlice";
 import { selectPostsByUser } from "../../posts/PostsSlice";
 
 const UserPage = () => {
-
     const { userId } = useParams();
-    const user = useSelector(state => selectUserById(state, Number(userId)));
-    const posts = useSelector(state => selectPostsByUser(state, Number(userId)));
+    const user = useSelector((state) => selectUserById(state, Number(userId)));
+    const posts = useSelector((state) =>
+        selectPostsByUser(state, Number(userId))
+    );
 
     const renderedPosts = posts.map((post) => (
         <li key={post.id}>
@@ -17,11 +18,11 @@ const UserPage = () => {
     ));
 
     return (
-        <section>
-            <h2>{user?.name}</h2>
-            <ol>
+        <section className="user-container">
+            <div className="user-content-container">
+                <h2 className="user-content-container-title">{user?.name}'s Posts</h2>
                 {renderedPosts}
-            </ol>
+            </div>
         </section>
     );
 };

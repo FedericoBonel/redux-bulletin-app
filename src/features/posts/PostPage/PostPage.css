@@ -1,0 +1,24 @@
+.not-found {
+    margin: 10px;
+    text-align: center;
+    font-size: 34px;
+}
+
+.post-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 40px;
+}
+
+.post-content {
+    background-color: rgb(25,25,25);
+    padding: 30px;
+    border-radius: 30px;
+    width: 80%;
+    white-space: pre-line;
+}
+
+.post-title {
+    font-size: 32px;
+}
