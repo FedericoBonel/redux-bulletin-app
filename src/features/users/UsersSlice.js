@@ -1,15 +1,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-
-const USERS_URL = "https://jsonplaceholder.typicode.com/users";
+import { getAllUsers } from "../../api/Users";
 
 // Hashtable keys are the users id for constant time lookup
 const initialState = {};
 
-export const getUsers = createAsyncThunk("users/getUsers", async () => {
-    const response = await axios.get(USERS_URL);
-    return response.data;
-});
+export const getUsers = createAsyncThunk("users/getUsers", getAllUsers);
 
 const usersSlice = createSlice({
     name: "users",

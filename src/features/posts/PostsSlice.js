@@ -24,24 +24,20 @@ const initialState = postAdapter.getInitialState({
 });
 
 // Get all posts from backend server asynchrounously (in another thread)
-export const getPosts = createAsyncThunk("posts/getPosts", async () =>
-    getAllPosts()
-);
+export const getPosts = createAsyncThunk("posts/getPosts", getAllPosts);
 
 // Create new posts in the backend server asynchrounously (in another thread)
-export const createPost = createAsyncThunk(
-    "posts/createPost",
-    async (newPost) => createNewPost(newPost)
+export const createPost = createAsyncThunk("posts/createPost", (newPost) =>
+    createNewPost(newPost)
 );
 
 // Update posts in the backend server asynchrounously (in another thread)
-export const updatePost = createAsyncThunk(
-    "posts/updatePost",
-    async (updatedPost) => updateSavedPost(updatedPost)
+export const updatePost = createAsyncThunk("posts/updatePost", (updatedPost) =>
+    updateSavedPost(updatedPost)
 );
 
 // Delete posts in the backend server asynchrounously (in another thread)
-export const deletePost = createAsyncThunk("posts/deletePost", async (post) =>
+export const deletePost = createAsyncThunk("posts/deletePost", (post) =>
     deleteSavedPost(post)
 );
 
