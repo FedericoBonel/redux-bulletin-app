@@ -6,12 +6,12 @@ import App from "./App";
 import { Provider } from "react-redux";
 import store from "./app/store";
 import { getUsers } from "./features/users/UsersSlice";
-import { getPosts } from "./features/posts/PostsSlice";
+import { postsApiSlice } from "./features/posts/PostsSlice";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 store.dispatch(getUsers());
-store.dispatch(getPosts());
+store.dispatch(postsApiSlice.endpoints.getPosts.initiate());
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(

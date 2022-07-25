@@ -1,17 +1,22 @@
 import "./EditPostForm.css";
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
-import { deletePost, updatePost, selectPostById } from "../PostsSlice";
+import {
+    useDeletePostMutation,
+    useUpdatePostMutation,
+    selectPostById,
+} from "../PostsSlice";
 import { useParams, useNavigate } from "react-router-dom";
 
 import { selectAllUsers } from "../../users/UsersSlice";
 
 const EditPostForm = () => {
-    const dispatch = useDispatch();
-
     const { postId } = useParams();
     const navigate = useNavigate();
+
+    const [updatePost, { isLoading }] = useUpdatePostMutation();
+    const [deletePost] = useDeletePostMutation();
 
     const post = useSelector((state) => selectPostById(state, Number(postId)));
 
@@ -20,7 +25,6 @@ const EditPostForm = () => {
     const [title, setTitle] = useState(post?.title);
     const [content, setContent] = useState(post?.body);
     const [userId, setUserId] = useState(post?.userId);
-    const [requestStatus, setRequestStatus] = useState("idle");
 
     if (!post) {
         return (
@@ -32,25 +36,18 @@ const EditPostForm = () => {
 
     // Checks if all fields have been selected and there is no current request leaving the client
     const canSavePost =
-        Boolean(title) &&
-        Boolean(userId) &&
-        Boolean(content) &&
-        requestStatus === "idle";
+        Boolean(title) && Boolean(userId) && Boolean(content) && !isLoading;
 
     // Dispatches a creation action to the global state
-    const onEditPost = () => {
+    const onEditPost = async () => {
         if (canSavePost) {
             try {
-                setRequestStatus("pending");
-                dispatch(
-                    updatePost({
-                        id: post.id,
-                        title,
-                        body: content,
-                        userId,
-                        reactions: post.reactions,
-                    })
-                ).unwrap();
+                await updatePost({
+                    ...post,
+                    title,
+                    body: content,
+                    userId,
+                }).unwrap();
 
                 setTitle("");
                 setContent("");
@@ -58,16 +55,13 @@ const EditPostForm = () => {
                 navigate(`/post/${postId}`);
             } catch (error) {
                 console.log(error.message);
-            } finally {
-                setRequestStatus("idle");
             }
         }
     };
 
-    const onDeletePost = () => {
+    const onDeletePost = async () => {
         try {
-            setRequestStatus("pending");
-            dispatch(deletePost(post)).unwrap();
+            await deletePost(post).unwrap();
 
             setTitle("");
             setContent("");
@@ -75,8 +69,6 @@ const EditPostForm = () => {
             navigate("/");
         } catch (error) {
             console.log(error.message);
-        } finally {
-            setRequestStatus("idle");
         }
     };
 

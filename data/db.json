@@ -50,37 +50,24 @@
   "posts": [
     {
       "id": 1,
-      "title": "qui est esse",
-      "body": "hey there",
-      "userId": 1,
-      "date": "2022-04-13T23:02:19.248Z"
+      "title": "Edited",
+      "body": "!!!!hey there",
+      "userId": 2,
+      "date": "2022-07-25T05:28:14.202Z",
+      "reactions": {
+        "thumbsUp": 1,
+        "wow": 1,
+        "heart": 0,
+        "rocket": 1,
+        "coffee": 15
+      }
     },
     {
       "id": 3,
-      "title": "qui est esse",
-      "body": "hey there",
+      "title": "This is a new post",
+      "body": "Hello!",
       "userId": 2,
-      "date": "2022-04-13T23:02:19.248Z"
-    },
-    {
-      "id": 4,
-      "title": "qui est esse",
-      "body": "hey there",
-      "userId": 2,
-      "date": "2022-04-13T23:02:19.248Z"
-    },
-    {
-      "id": 5,
-      "title": "qui est esse",
-      "body": "hey there",
-      "userId": 2,
-      "date": "2022-04-13T23:02:19.248Z"
-    },
-    {
-      "id": 6,
-      "title": "New post!!!!",
-      "body": "asdasda",
-      "userId": 1,
+      "date": "2022-07-25T05:40:30.075Z",
       "reactions": {
         "thumbsUp": 0,
         "wow": 0,
@@ -88,6 +75,62 @@
         "rocket": 0,
         "coffee": 0
       }
+    },
+    {
+      "id": 4,
+      "title": "Redux is pretty cool actually",
+      "body": "I hated how much boiler plate code I had to write, but after seeing the long-term effects! Is cool.",
+      "userId": 1,
+      "date": "2022-07-25T05:31:40.552Z",
+      "reactions": {
+        "thumbsUp": 0,
+        "wow": 0,
+        "heart": 0,
+        "rocket": 0,
+        "coffee": 0
+      }
+    },
+    {
+      "id": 5,
+      "title": "What is this",
+      "body": "First post here everyone! I hope you're all doing well",
+      "userId": 2,
+      "date": "2022-07-25T05:32:42.100Z",
+      "reactions": {
+        "thumbsUp": 0,
+        "wow": 0,
+        "heart": 0,
+        "rocket": 0,
+        "coffee": 0
+      }
+    },
+    {
+      "title": "New post",
+      "body": "This is a new post that I'm testing out",
+      "userId": 2,
+      "date": "2022-07-25T05:33:03.986Z",
+      "reactions": {
+        "thumbsUp": 0,
+        "wow": 0,
+        "heart": 0,
+        "rocket": 0,
+        "coffee": 0
+      },
+      "id": 6
+    },
+    {
+      "title": "New post",
+      "body": "This is a new post from Leanne",
+      "userId": 1,
+      "date": "2022-07-25T05:42:21.553Z",
+      "reactions": {
+        "thumbsUp": 0,
+        "wow": 0,
+        "heart": 0,
+        "rocket": 0,
+        "coffee": 0
+      },
+      "id": 7
     }
   ]
 }

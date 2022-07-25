@@ -1,5 +1,6 @@
 import "./PostAuthor.css";
 import { useSelector } from "react-redux/es/exports";
+import { Link } from "react-router-dom";
 
 import { selectAllUsers } from "../../users/UsersSlice";
 
@@ -10,7 +11,12 @@ const PostAuthor = ({ userId }) => {
 
     return (
         <span className="author-name">
-            by: {author ? author.name : "Anonymous author"}
+            by:{" "}
+            {author ? (
+                <Link to={`/user/${author.id}`}>{author.name}</Link>
+            ) : (
+                "Anonymous author"
+            )}
         </span>
     );
 };

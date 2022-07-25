@@ -1,130 +1,155 @@
-import {
-    createSlice,
-    createAsyncThunk,
-    createSelector,
-    createEntityAdapter,
-} from "@reduxjs/toolkit";
-import sub from "date-fns/sub";
+import { createSelector, createEntityAdapter } from "@reduxjs/toolkit";
 
-import {
-    getAllPosts,
-    createNewPost,
-    updateSavedPost,
-    deleteSavedPost,
-} from "../../api/Posts";
+import { apiSlice } from "../api/apiSlice";
+
+// Sets the date and reactions for the posts in case they don't already have it in the back end
+const transformPost = (post) => {
+    if (!post?.date) post.date = new Date().toISOString();
+    if (!post?.reactions)
+        post.reactions = {
+            thumbsUp: 0,
+            wow: 0,
+            heart: 0,
+            rocket: 0,
+            coffee: 0,
+        };
+    return post;
+};
 
 // Creates the postSlice adapter for selectors and normalized state auto creation (sorting ids by date)
 const postAdapter = createEntityAdapter({
     sortComparer: (post1, post2) => post2.date.localeCompare(post1.date),
 });
 
-const initialState = postAdapter.getInitialState({
-    status: "idle", // idle | failed | succeeded | loading
-    error: null,
-});
+const initialState = postAdapter.getInitialState();
 
-// Get all posts from backend server asynchrounously (in another thread)
-export const getPosts = createAsyncThunk("posts/getPosts", getAllPosts);
-
-// Create new posts in the backend server asynchrounously (in another thread)
-export const createPost = createAsyncThunk("posts/createPost", (newPost) =>
-    createNewPost(newPost)
-);
-
-// Update posts in the backend server asynchrounously (in another thread)
-export const updatePost = createAsyncThunk("posts/updatePost", (updatedPost) =>
-    updateSavedPost(updatedPost)
-);
-
-// Delete posts in the backend server asynchrounously (in another thread)
-export const deletePost = createAsyncThunk("posts/deletePost", (post) =>
-    deleteSavedPost(post)
-);
-
-const postsSlice = createSlice({
-    name: "posts",
-    initialState: initialState,
-    reducers: {
-        addReaction: (state, action) => {
-            const { postId, reaction } = action.payload;
-            const foundPost = state.entities[postId];
-
-            if (foundPost) {
-                foundPost.reactions[reaction]++;
-            }
-        },
-    },
-    // Adding extra cases that are outside our defined reducers for the thunk (async get posts)
-    // Each ones of these ones are going to use the promises states since those are specific actions for the action
-    // posts/getPosts (generated in createAsyncThunk)
-    extraReducers: (builder) => {
-        builder
-            .addCase(getPosts.pending, (state, action) => {
-                state.status = "loading";
-            })
-            .addCase(getPosts.fulfilled, (state, action) => {
-                state.status = "succeeded";
-                let min = 1;
-                const loadedPosts = action.payload.map((post) => {
-                    // ! Adding handmade dates and
-                    // ! reactions this should be removed when an actual microservice is developed
-                    post.date = sub(new Date(), {
-                        minutes: min++,
-                    }).toISOString();
-                    post.reactions = {
+// Extend apiSlice with posts endpoints
+export const postsApiSlice = apiSlice.injectEndpoints({
+    endpoints: (builder) => ({
+        getPosts: builder.query({
+            query: () => "/posts",
+            transformResponse: (response) => {
+                const loadedPosts = response.map((post) => transformPost(post));
+                // Normalize data and post slice and return the updated state
+                return postAdapter.setAll(initialState, loadedPosts);
+            },
+            providesTags: (result, error, arg) => [
+                // To re-fetch when the list gets invalidated
+                { type: "Post", id: "LIST" },
+                // To re-fetch when a specific post changes and gets invalidated
+                // (Get all ids from the posts slice state [result] and create tags for each one with their ids)
+                ...result.ids.map((id) => ({ type: "Post", id })),
+            ],
+        }),
+        getPostsByUserId: builder.query({
+            query: (userId) => `/posts?userId=${userId}`,
+            transformResponse: (response) => {
+                const loadedPosts = response.map((post) => transformPost(post));
+                // Normalize data and post slice and return the updated state
+                return postAdapter.setAll(initialState, loadedPosts);
+            },
+            providesTags: (result, error, arg) => [
+                // We only need to re fetch this if any of these posts gets invalidated (since is for a specific user)
+                ...result.ids.map((id) => ({ type: "Post", id: id })),
+            ],
+        }),
+        addNewPost: builder.mutation({
+            query: (newPost) => ({
+                url: "/posts",
+                method: "POST",
+                body: {
+                    ...newPost,
+                    userId: Number(newPost.userId),
+                    date: new Date().toISOString(),
+                    reactions: {
                         thumbsUp: 0,
                         wow: 0,
                         heart: 0,
                         rocket: 0,
                         coffee: 0,
-                    };
-                    // ! End of removable code
-                    return post;
-                });
-                postAdapter.upsertMany(state, loadedPosts);
-            })
-            .addCase(getPosts.rejected, (state, action) => {
-                state.status = "failed";
-                state.error = action.error;
-            })
-            .addCase(createPost.fulfilled, (state, action) => {
-                action.payload.userId = Number(action.payload.userId);
-                // ! Adding handmade dates and
-                // ! reactions this should be removed when an actual microservice is developed
-                action.payload.date = new Date().toISOString();
-                action.payload.reactions = {
-                    thumbsUp: 0,
-                    wow: 0,
-                    heart: 0,
-                    rocket: 0,
-                    coffee: 0,
-                };
-                // ! End of removable code
-                postAdapter.addOne(state, action.payload);
-            })
-            .addCase(updatePost.fulfilled, (state, action) => {
-                // This could happen if the server has an error for example (i.g 5XX response code)
-                if (!action.payload?.id) {
-                    console.log("Problem saving updated post");
-                    console.log(action.payload);
-                    return;
+                    },
+                },
+            }),
+            invalidatesTags: [{ type: "Post", id: "LIST" }],
+        }),
+        updatePost: builder.mutation({
+            query: (updatedPost) => ({
+                url: `/posts/${updatedPost.id}`,
+                method: "PUT",
+                body: {
+                    ...updatedPost,
+                    userId: Number(updatedPost.userId),
+                    date: new Date().toISOString(),
+                },
+            }),
+            invalidatesTags: (result, error, arg) => [
+                { type: "Post", id: arg.id }, // For that specific post
+            ],
+        }),
+        deletePost: builder.mutation({
+            query: (post) => ({
+                url: `/posts/${post.id}`,
+                method: "DELETE",
+                body: post.id,
+            }),
+            invalidatesTags: (result, error, arg) => [
+                { type: "Post", id: arg.id },
+            ],
+        }),
+        addReaction: builder.mutation({
+            query: ({ postId, reactions }) => ({
+                url: `/posts/${postId}`,
+                method: "PATCH",
+                body: { reactions },
+            }),
+            // Update the cache before the data gets persisted in the back-end
+            // This is an optimistic update (we assume it's going to happen) hence invalidation of cache is not necessary
+            // we just update the cache optimistically and "hope for the best" without re-fetching anything
+            async onQueryStarted(
+                { postId, reactions },
+                // queryFulfilled is a promise that contains the state of the update
+                // dispatch is the good old dispatch of actions
+                { dispatch, queryFulfilled }
+            ) {
+                // Update the cache for the getPosts endpoint (draft is a draft of our state)
+                const patchResult = dispatch(
+                    postsApiSlice.util.updateQueryData(
+                        "getPosts",
+                        undefined,
+                        (draft) => {
+                            const post = draft.entities[postId];
+                            if (post) post.reactions = reactions;
+                        }
+                    )
+                );
+                try {
+                    await queryFulfilled;
+                } catch {
+                    // If the promise (i.e the update) threw an error, just undo the patch in cache
+                    patchResult.undo();
                 }
-                action.payload.userId = Number(action.payload.userId);
-                // ! Adding handmade dates this should be removed when an actual microservice is developed
-                action.payload.date = new Date().toISOString();
-                // ! End of removable code
-                postAdapter.upsertOne(state, action.payload);
-            })
-            .addCase(deletePost.fulfilled, (state, action) => {
-                if (!action.payload?.id) {
-                    console.log("Problem saving updated post");
-                    console.log(action.payload);
-                    return;
-                }
-                postAdapter.removeOne(state, action.payload.id);
-            });
-    },
+            },
+        }),
+    }),
 });
+
+export const {
+    useGetPostsQuery,
+    useGetPostsByUserIdQuery,
+    useAddNewPostMutation,
+    useDeletePostMutation,
+    useUpdatePostMutation,
+    useAddReactionMutation,
+} = postsApiSlice;
+
+// Selector to get a hold of the result object (Not just the data) of the getPosts query
+const selectPostsResult = postsApiSlice.endpoints.getPosts.select();
+
+// Selector to get a hold of the posts data
+const selectPostsData = createSelector(
+    selectPostsResult,
+    (postResult) => postResult.data //the normalized state object with ids and entities
+);
 
 // Get selectors creates this selectors for us and we rename them using destructuring
 export const {
@@ -133,16 +158,4 @@ export const {
     selectIds: selectPostIds,
     // We need to tell the adapter from which slice we need to get these selectors
     // Since we are outside the createSlice method
-} = postAdapter.getSelectors((state) => state.posts);
-
-export const selectPostsStatus = (state) => state.posts.status;
-export const selectPostsError = (state) => state.posts.error;
-
-export const selectPostsByUser = createSelector(
-    [selectAllPosts, (state, userId) => userId],
-    (posts, userId) => posts.filter((post) => post.userId === userId)
-);
-
-export const { addReaction } = postsSlice.actions;
-
-export default postsSlice.reducer;
+} = postAdapter.getSelectors((state) => selectPostsData(state) ?? initialState);

@@ -1,39 +1,33 @@
 import "./AddPostForm.css";
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 
-import { createPost } from "../PostsSlice";
+import { useAddNewPostMutation } from "../PostsSlice";
 import { selectAllUsers } from "../../users/UsersSlice";
 
 const AddPostForm = () => {
-    const dispatch = useDispatch();
+    // We only need the isLoading from all the fetching states
+    const [addNewPost, { isLoading }] = useAddNewPostMutation();
     const navigate = useNavigate();
 
     // Form states
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [userId, setUserId] = useState("");
-    // We only care about creating a new user state in this componenent
-    // This is way we add it with useState hook and not as part of our global state
-    const [addRequestStatus, setAddRequestStatus] = useState("idle");
 
     // Users coming from global state
     const users = useSelector(selectAllUsers);
 
     // Checks if all fields have been selected and there is no current request leaving the client
     const canSavePost =
-        Boolean(title) &&
-        Boolean(userId) &&
-        Boolean(content) &&
-        addRequestStatus === "idle";
+        Boolean(title) && Boolean(userId) && Boolean(content) && !isLoading;
 
     // Dispatches a creation action to the global state
-    const onCreatePost = () => {
+    const onCreatePost = async () => {
         if (canSavePost) {
             try {
-                setAddRequestStatus("pending");
-                dispatch(createPost({ title, body: content, userId })).unwrap();
+                await addNewPost({ title, body: content, userId }).unwrap();
 
                 setTitle("");
                 setContent("");
@@ -41,8 +35,6 @@ const AddPostForm = () => {
                 navigate("/");
             } catch (error) {
                 console.log(error.message);
-            } finally {
-                setAddRequestStatus("idle");
             }
         }
     };
