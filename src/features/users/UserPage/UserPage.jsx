@@ -39,7 +39,11 @@ const UserPage = () => {
                 <h2 className="user-content-container-title">
                     {user?.name}'s Posts
                 </h2>
-                {renderedPosts}
+                {renderedPosts.length === 0 ? (
+                    <p>This user has no posts yet</p>
+                ) : (
+                    renderedPosts
+                )}
             </div>
         </section>
     );

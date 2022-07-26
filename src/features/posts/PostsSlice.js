@@ -49,7 +49,7 @@ export const postsApiSlice = apiSlice.injectEndpoints({
                 return postAdapter.setAll(initialState, loadedPosts);
             },
             providesTags: (result, error, arg) => [
-                // We only need to re fetch this if any of these posts gets invalidated (since is for a specific user)
+                { type: "Post", id: "LIST" },
                 ...result.ids.map((id) => ({ type: "Post", id: id })),
             ],
         }),

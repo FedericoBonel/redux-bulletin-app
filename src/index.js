@@ -5,12 +5,12 @@ import App from "./App";
 
 import { Provider } from "react-redux";
 import store from "./app/store";
-import { getUsers } from "./features/users/UsersSlice";
+import { usersApiSlice } from "./features/users/UsersSlice";
 import { postsApiSlice } from "./features/posts/PostsSlice";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-store.dispatch(getUsers());
+store.dispatch(usersApiSlice.endpoints.getUsers.initiate());
 store.dispatch(postsApiSlice.endpoints.getPosts.initiate());
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

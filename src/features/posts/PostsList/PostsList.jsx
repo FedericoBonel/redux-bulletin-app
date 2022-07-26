@@ -27,7 +27,11 @@ const PostsList = () => {
         list = <p>Unknown fetching state in postSlice.postApiSlice</p>;
     }
 
-    return <section className="post-list">{list}</section>;
+    return (
+        <section className="post-list">
+            {list.length === 0 ? <p>No posts to show yet</p> : list}
+        </section>
+    );
 };
 
 export default PostsList;

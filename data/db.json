@@ -45,15 +45,27 @@
         "catchPhrase": "Proactive didactic contingency",
         "bs": "synergize scalable supply-chains"
       }
+    },
+    {
+      "name": "Federico Jorge Bonel Tozzi",
+      "username": "fede_bonel",
+      "email": "bonelfederico@gmail.com",
+      "id": 3
+    },
+    {
+      "name": "Giuseppe Giuliano Bonel Takagi",
+      "username": "gigi",
+      "email": "gigi_pantera@gmail.com",
+      "id": 4
     }
   ],
   "posts": [
     {
       "id": 1,
       "title": "Edited",
-      "body": "!!!!hey there",
+      "body": "Hey hey!",
       "userId": 2,
-      "date": "2022-07-25T05:28:14.202Z",
+      "date": "2022-07-26T00:37:08.788Z",
       "reactions": {
         "thumbsUp": 1,
         "wow": 1,
@@ -66,7 +78,7 @@
       "id": 3,
       "title": "This is a new post",
       "body": "Hello!",
-      "userId": 2,
+      "userId": 1,
       "date": "2022-07-25T05:40:30.075Z",
       "reactions": {
         "thumbsUp": 0,
@@ -78,10 +90,10 @@
     },
     {
       "id": 4,
-      "title": "Redux is pretty cool actually",
+      "title": "Redux is pretty cool actually!!!",
       "body": "I hated how much boiler plate code I had to write, but after seeing the long-term effects! Is cool.",
       "userId": 1,
-      "date": "2022-07-25T05:31:40.552Z",
+      "date": "2022-07-26T00:31:36.339Z",
       "reactions": {
         "thumbsUp": 0,
         "wow": 0,
@@ -95,13 +107,13 @@
       "title": "What is this",
       "body": "First post here everyone! I hope you're all doing well",
       "userId": 2,
-      "date": "2022-07-25T05:32:42.100Z",
+      "date": "2022-07-26T00:37:22.848Z",
       "reactions": {
-        "thumbsUp": 0,
-        "wow": 0,
-        "heart": 0,
+        "thumbsUp": 3,
+        "wow": 5,
+        "heart": 2,
         "rocket": 0,
-        "coffee": 0
+        "coffee": 1
       }
     },
     {
@@ -131,6 +143,76 @@
         "coffee": 0
       },
       "id": 7
+    },
+    {
+      "title": "This is a new post",
+      "body": "Hello, I'm Ervin Howell!",
+      "userId": 2,
+      "date": "2022-07-26T00:38:13.782Z",
+      "reactions": {
+        "thumbsUp": 3,
+        "wow": 0,
+        "heart": 1,
+        "rocket": 0,
+        "coffee": 0
+      },
+      "id": 8
+    },
+    {
+      "title": "Yesterday I ate Pizza",
+      "body": "I ate such a nice pizza yesterday! It was a napolitalean one and it changed my life",
+      "userId": 2,
+      "date": "2022-07-26T00:40:42.175Z",
+      "reactions": {
+        "thumbsUp": 2,
+        "wow": 1,
+        "heart": 0,
+        "rocket": 5,
+        "coffee": 2
+      },
+      "id": 9
+    },
+    {
+      "title": "Did you know?",
+      "body": "Milk is actually not necessary",
+      "userId": 1,
+      "date": "2022-07-26T00:42:45.084Z",
+      "reactions": {
+        "thumbsUp": 0,
+        "wow": 6,
+        "heart": 0,
+        "rocket": 0,
+        "coffee": 0
+      },
+      "id": 10
+    },
+    {
+      "title": "Hello everyone! ",
+      "body": "I'm starting my account in this app! Hope you all are well",
+      "userId": 3,
+      "date": "2022-07-26T02:10:32.983Z",
+      "reactions": {
+        "thumbsUp": 8,
+        "wow": 0,
+        "heart": 4,
+        "rocket": 0,
+        "coffee": 3
+      },
+      "id": 11
+    },
+    {
+      "title": "Slices",
+      "body": "The more I listen the word \"slice\" the more I want to eat pizza! ",
+      "userId": 4,
+      "date": "2022-07-26T02:14:47.456Z",
+      "reactions": {
+        "thumbsUp": 0,
+        "wow": 0,
+        "heart": 1,
+        "rocket": 0,
+        "coffee": 0
+      },
+      "id": 12
     }
   ]
 }

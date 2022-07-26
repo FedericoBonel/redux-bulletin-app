@@ -1,26 +1,65 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { getAllUsers } from "../../api/Users";
+import { createEntityAdapter, createSelector } from "@reduxjs/toolkit";
+import { apiSlice } from "../api/apiSlice";
 
-// Hashtable keys are the users id for constant time lookup
-const initialState = {};
+const userAdapter = createEntityAdapter();
 
-export const getUsers = createAsyncThunk("users/getUsers", getAllUsers);
+const initialState = userAdapter.getInitialState();
 
-const usersSlice = createSlice({
-    name: "users",
-    initialState: initialState,
-    reducers: {},
-    extraReducers: (builder) => {
-        builder.addCase(getUsers.fulfilled, (state, action) => {
-            const usersHashTable = {};
-            action.payload.map((user) => (usersHashTable[user.id] = user));
-            // Replace completly the current users slice state by returning it
-            return usersHashTable;
-        });
-    },
+export const usersApiSlice = apiSlice.injectEndpoints({
+    endpoints: (builder) => ({
+        getUsers: builder.query({
+            query: () => "/users",
+            transformResponse: (response) =>
+                userAdapter.setAll(initialState, response),
+            providesTags: (result, error, arg) => [
+                { type: "User", id: "LIST" },
+                ...result.ids.map((id) => ({ type: "User", id })),
+            ],
+        }),
+        createUser: builder.mutation({
+            query: (user) => ({
+                url: "/users",
+                method: "POST",
+                body: user,
+            }),
+            invalidatesTags: [{ type: "User", id: "LIST" }],
+        }),
+        deleteUser: builder.mutation({
+            query: (user) => ({
+                url: `/users/${user.id}`,
+                method: "DELETE",
+                body: user.id,
+            }),
+            invalidatesTags: (result, error, arg) => [
+                { type: "User", id: arg.id },
+            ],
+        }),
+        updateUser: builder.mutation({
+            query: (user) => ({
+                url: `/users/${user.id}`,
+                method: "PUT",
+                body: user,
+            }),
+            invalidatesTags: (result, error, arg) => [
+                { type: "User", id: arg.id },
+            ],
+        }),
+    }),
 });
 
-export const selectAllUsers = (state) => state.users;
-export const selectUserById = (state, userId) => state.users[Number(userId)];
+export const {
+    useGetUsersQuery,
+    useCreateUserMutation,
+    useDeleteUserMutation,
+    useUpdateUserMutation,
+} = usersApiSlice;
 
-export default usersSlice.reducer;
+const selectUserResult = usersApiSlice.endpoints.getUsers.select();
+
+const selectUsersData = createSelector(
+    selectUserResult,
+    (userResult) => userResult.data
+);
+
+export const { selectAll: selectAllUsers, selectById: selectUserById } =
+    userAdapter.getSelectors((state) => selectUsersData(state) ?? initialState);
